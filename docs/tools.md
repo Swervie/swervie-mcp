@@ -2,7 +2,7 @@
 
 Generated from the live server (`https://us-central1-swervie-prod.cloudfunctions.net/mcp`) on 2026-10-28.
 Server `swervie` v1.6.0, protocol 2025-06-18.
-Regenerate with `node scripts/gen-tools-doc.mjs` (this revision was prepared from the v1.6.0 source ahead of its deploy; rerun once v1.6.0 is live).
+Regenerate with `node scripts/gen-tools-doc.mjs`.
 
 Every tool also accepts an optional `user_signature` (see the README for the
 recipe). Responses that carry `buy_url` links also carry a `disclosure`
@@ -94,3 +94,4 @@ Full detail for up to 25 products: all specifications in the category's standard
 |---|---|---|---|
 | `ids` | array | yes | (1–25 items) |
 | `user_signature` | string | no | Optional opaque, stable, pseudonymous user id: the shopper's own rate-limit quota and click attribution. Format: 'sv1-' + the first 24 hex characters of SHA-256('swervie/v1|' + normalized identifier), or 'sv1r-' + a UUID. A raw email or phone number is hashed server-side before anything is stored. (≤128 chars) |
+
