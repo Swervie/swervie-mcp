@@ -1,0 +1,12 @@
+{
+  "name": "swervie-mcp-example",
+  "private": true,
+  "type": "module",
+  "description": "Example client for the Swervie MCP server",
+  "scripts": {
+    "start": "node search.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.20.0"
+  }
+}

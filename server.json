@@ -1,0 +1,18 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.swervie/swervie",
+  "title": "Swervie",
+  "description": "Cross-retailer product catalog: one scored answer per product with live prices and buy links.",
+  "websiteUrl": "https://swervie.xyz/developers",
+  "repository": {
+    "url": "https://github.com/Swervie/swervie-mcp",
+    "source": "github"
+  },
+  "version": "1.5.2",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://us-central1-swervie-prod.cloudfunctions.net/mcp"
+    }
+  ]
+}
