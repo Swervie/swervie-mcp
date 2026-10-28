@@ -1,6 +1,6 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.swervie/swervie",
+  "name": "io.github.Swervie/swervie",
   "title": "Swervie",
   "description": "Cross-retailer product catalog: one scored answer per product with live prices and buy links.",
   "websiteUrl": "https://swervie.xyz/developers",

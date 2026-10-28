@@ -1,6 +1,6 @@
 # Publishes server.json to the official MCP Registry on every release tag.
 # Uses GitHub OIDC, which is the supported path for an organization
-# namespace (io.github.swervie/*): the interactive device flow cannot
+# namespace (io.github.Swervie/*): the interactive device flow cannot
 # prove org ownership. No secrets required.
 name: Publish to MCP Registry
 
