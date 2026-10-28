@@ -82,12 +82,12 @@ client, and the curl script above.
 | `find_category` | read | The matching category and its filter contract: every filterable spec with type, units, allowed values and importance, plus price bands. |
 | `browse_category` | read | A category's ranked shelf with explicit filters (hard) and preferences (soft), sorted by value, quality or price. |
 | `get_products` | read | Full detail for up to 25 ids: all specs with provenance, review sub-ratings with evidence quotes, every offer. |
-| `record_selection` | write, non-destructive | Which product the user considered or chose. Appends one event; changes nothing else. |
-| `submit_feedback` | write, non-destructive | A problem report for human review: wrong spec, stale price, bad match, missed duplicate, missing product. |
 
-All tools carry MCP annotations (`title`, `readOnlyHint`, `destructiveHint`,
-`openWorldHint`), so hosts can run the reads without a confirmation prompt.
-Full input schemas and descriptions, generated from the live server, are in
+Every tool is read-only and annotated (`title`, `readOnlyHint: true`,
+`openWorldHint: true`), so hosts can run them without a confirmation prompt.
+The server provides data only: it writes nothing on the user's behalf, and
+neither its instructions nor its results direct the model. Full input schemas
+and descriptions, generated from the live server, are in
 [docs/tools.md](docs/tools.md).
 
 ### A typical conversation
@@ -96,16 +96,18 @@ Full input schemas and descriptions, generated from the live server, are in
    with prices, buy links and the commission disclosure.
 2. "Which of those is better for gaming?" → `get_products` → refresh rate, VRR,
    HDMI 2.1, and what reviewers say about input lag.
-3. "I'll take the Samsung" → `record_selection` → improves later rankings.
+3. "Is the Sony A95L any cheaper anywhere?" → `lookup_product` → every seller
+   offer, plus its rank on the shelf and higher-scoring alternatives.
 
-The server ships `instructions` on `initialize` that teach an agent this flow,
-so a client needs no prompt engineering.
+The server ships `instructions` on `initialize` that describe each tool and
+the fields its results carry, so a client needs no prompt engineering.
 
-## Personalization without PII
+## User signature (optional, no PII)
 
 Every tool accepts an optional `user_signature`: an opaque, stable, pseudonymous
-id that makes rankings consistent for a returning user across agents and
-sessions. The recommended recipe:
+id that gives each shopper their own rate-limit quota (instead of sharing one
+per session or egress IP) and attributes their buy-link clicks. The
+recommended recipe:
 
 ```
 user_signature = "sv1-" + sha256hex("swervie/v1|" + id).slice(0, 24)
@@ -113,9 +115,10 @@ user_signature = "sv1-" + sha256hex("swervie/v1|" + id).slice(0, 24)
 
 where `id` is the user's most stable identifier, normalized (lowercase,
 trimmed; email preferred, with `+tags` stripped). Never send the raw
-identifier. If none is available, use `"sv1r-"` + a UUID persisted in the
-agent's own memory for that user, or omit the field. The server hashes any raw
-email or phone number that arrives by mistake before anything is stored.
+identifier. If none is available, use `"sv1r-"` + a UUID kept for that user,
+or omit the field. A value that changes every session counts as a new shopper
+each session. The server hashes any raw email or phone number that arrives by
+mistake before anything is stored.
 
 ## Limits, affiliate links, and privacy
 
@@ -129,7 +132,8 @@ email or phone number that arrives by mistake before anything is stored.
 - **No account, no checkout, no payments.** Purchasing hands off to the
   retailer's own page.
 - **What is stored.** Tool name, query, category and product ids per call, the
-  signature when present, and rate-limit counters. Nothing the user owns.
+  signature when present, and rate-limit counters. Nothing the user owns, and
+  nothing written on the user's behalf.
 
 Details in [docs/data-handling.md](docs/data-handling.md). Policies:
 [privacy](https://swervie.xyz/privacy) · [terms](https://swervie.xyz/terms) ·
@@ -145,6 +149,11 @@ is the supported way to use it. Issues and feature requests are welcome.
 
 Server version is reported by `initialize` (`serverInfo.version`). Protocol
 version `2025-06-18`. Transport: Streamable HTTP, stateless.
+
+Changes: v1.6.0 (2026-10) removed the two non-destructive write tools
+(`record_selection`, `submit_feedback`) and rewrote the server instructions
+and result notes as descriptions of the data; the server is now read-only
+end to end.
 
 ## License
 

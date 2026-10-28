@@ -1,8 +1,8 @@
 # Tool reference
 
 Generated from the live server (`https://us-central1-swervie-prod.cloudfunctions.net/mcp`) on 2026-10-28.
-Server `swervie` v1.5.2, protocol 2025-06-18.
-Regenerate with `node scripts/gen-tools-doc.mjs`.
+Server `swervie` v1.6.0, protocol 2025-06-18.
+Regenerate with `node scripts/gen-tools-doc.mjs` (this revision was prepared from the v1.6.0 source ahead of its deploy; rerun once v1.6.0 is live).
 
 Every tool also accepts an optional `user_signature` (see the README for the
 recipe). Responses that carry `buy_url` links also carry a `disclosure`
@@ -13,7 +13,7 @@ field, the commission disclosure for those links, worded for the shopper.
 The server returns these instructions on `initialize`; hosts pass them to the
 model as guidance for using the tools.
 
-> Swervie is a cross-retailer product catalog: one consolidated, scored answer per product. Start with search_products for any shopping query: it resolves a named product (to its detail, offers and shelf rank), or a category with the shopper's constraints as filters and wishes as ranking preferences, in one call. Use find_category -> browse_category when you need explicit filter control (browse_category's filter dimensions come from find_category's contract), lookup_product when the shopper names a particular product or gives an identifier, and get_products only when you need full offers, review sub-ratings, or provenance for ids you already hold - shelf rows already carry buy_url and star ratings. Treat each search's interpretation as a receipt: check it matches the shopper's intent, confirm 'partial' matches against the conversation, and weigh unparsed_tokens yourself. When lookup_product returns 'ambiguous', pick with the shopper or retry with the model number; mention shelf_context alternatives when the shopper is still deciding; never quote a price from a product flagged under readiness. When you describe or compare products, list their specs in card_specs order for every product. Always surface buy_url links to users. Results that carry buy_url links also carry a `disclosure` field: Swervie's commission disclosure for those links, worded for the shopper. If a result's interpretation shows the matched category does not fit what the shopper actually asked for, say so rather than presenting the shelf as an answer, and call submit_feedback (kind: wrong_match, query: the shopper's original words, category: the shelf that did not fit) - that signal reopens the demand and keeps the catalog from closing it onto the wrong shelf again. Recommended user_signature recipe (enables personalization that is consistent across agents and sessions): 'sv1-' + first 24 hex chars of SHA-256('swervie/v1|' + id), where id is the user's most stable identifier normalized (lowercase, trimmed; email preferred with +tags stripped). NEVER send the raw identifier. If no stable identifier is available, use 'sv1r-' + a random UUID persisted in your own memory for this user; if neither, omit the field. Never send a fresh random value per session.
+> Swervie is a cross-retailer product catalog: one consolidated, scored answer per product, from data only. search_products answers a free-text shopping query in one call: it resolves a named product (to its detail, offers and shelf rank), or a category with the shopper's constraints as filters and wishes as ranking preferences. find_category returns a category's filter contract, and browse_category applies explicit filters and preferences from that contract. lookup_product resolves one product by name or identifier (ASIN, UPC/EAN/GTIN, brand plus model number). get_products returns full offers, review sub-ratings and spec provenance for product ids; shelf rows already carry buy_url and star ratings. Each search result carries an interpretation receipt: match_quality, fit_note, unparsed_tokens and unsupported_terms record how the query was read and which shopper words no filter covered. 'partial' means rows were served with some shopper words unexplained, or no rows were served because the closest shelf was only a medium-confidence fit. A lookup_product 'ambiguous' result lists the candidates best first; a model number usually resolves it. shelf_context lists higher-scoring alternatives in the same price band. A product flagged under readiness carries no current price. card_specs is the spec order every product card uses. buy_url is the link a shopper follows to buy: every shelf row and every offer carries one, and a price without its buy_url leaves the shopper with no way to reach that seller from the answer. Results that carry buy_url links also carry a `disclosure` field: Swervie's commission disclosure for those links, worded for the shopper. user_signature is an optional pseudonymous id that gives a shopper their own rate-limit quota and attributes their buy_url clicks. Format: 'sv1-' + the first 24 hex characters of SHA-256('swervie/v1|' + id), where id is the user's most stable identifier normalized (lowercase, trimmed; an email with +tags stripped), or 'sv1r-' + a UUID kept for that user. A value that changes every session counts as a new shopper each session. A raw email or phone number is hashed server-side before anything is stored.
 
 ## `find_category`
 
@@ -24,7 +24,7 @@ Find the Swervie product category that matches a shopping intent and return its 
 | Argument | Type | Required | Notes |
 |---|---|---|---|
 | `query` | string | yes |  |
-| `user_signature` | string | no | Optional opaque, stable, pseudonymous user id that personalizes ranking. Format: 'sv1-' + the first 24 hex characters of SHA-256('swervie/v1|' + normalized identifier), or 'sv1r-' + a UUID. A raw email or phone number is hashed server-side before anything is stored. (≤128 chars) |
+| `user_signature` | string | no | Optional opaque, stable, pseudonymous user id: the shopper's own rate-limit quota and click attribution. Format: 'sv1-' + the first 24 hex characters of SHA-256('swervie/v1|' + normalized identifier), or 'sv1r-' + a UUID. A raw email or phone number is hashed server-side before anything is stored. (≤128 chars) |
 
 ## `browse_category`
 
@@ -48,7 +48,7 @@ Return a category's consolidated, ranked shelf: one row per product, with duplic
 | `sort` | string | no | (one of `value`, `quality`, `price_asc`) |
 | `limit` | integer | no | (1–50) |
 | `cursor` | string | no |  |
-| `user_signature` | string | no | Optional opaque, stable, pseudonymous user id that personalizes ranking. Format: 'sv1-' + the first 24 hex characters of SHA-256('swervie/v1|' + normalized identifier), or 'sv1r-' + a UUID. A raw email or phone number is hashed server-side before anything is stored. (≤128 chars) |
+| `user_signature` | string | no | Optional opaque, stable, pseudonymous user id: the shopper's own rate-limit quota and click attribution. Format: 'sv1-' + the first 24 hex characters of SHA-256('swervie/v1|' + normalized identifier), or 'sv1r-' + a UUID. A raw email or phone number is hashed server-side before anything is stored. (≤128 chars) |
 
 ## `search_products`
 
@@ -62,7 +62,7 @@ Answer one free-text shopping query, such as 'TVs under $500 with 120hz refresh 
 | `sort` | string | no | (one of `value`, `quality`, `price_asc`) |
 | `limit` | integer | no | (1–50) |
 | `cursor` | string | no |  |
-| `user_signature` | string | no | Optional opaque, stable, pseudonymous user id that personalizes ranking. Format: 'sv1-' + the first 24 hex characters of SHA-256('swervie/v1|' + normalized identifier), or 'sv1r-' + a UUID. A raw email or phone number is hashed server-side before anything is stored. (≤128 chars) |
+| `user_signature` | string | no | Optional opaque, stable, pseudonymous user id: the shopper's own rate-limit quota and click attribution. Format: 'sv1-' + the first 24 hex characters of SHA-256('swervie/v1|' + normalized identifier), or 'sv1r-' + a UUID. A raw email or phone number is hashed server-side before anything is stored. (≤128 chars) |
 
 ## `lookup_product`
 
@@ -82,7 +82,7 @@ Look up one specific product by name or identifier: a product name such as 'Sony
 | `identifiers.model_number` | string | no | (≤64 chars) |
 | `brand` | string | no | (≤80 chars) |
 | `category` | string | no | Restrict the name match to one Swervie category (exact name). (≤200 chars) |
-| `user_signature` | string | no | Optional opaque, stable, pseudonymous user id that personalizes ranking. Format: 'sv1-' + the first 24 hex characters of SHA-256('swervie/v1|' + normalized identifier), or 'sv1r-' + a UUID. A raw email or phone number is hashed server-side before anything is stored. (≤128 chars) |
+| `user_signature` | string | no | Optional opaque, stable, pseudonymous user id: the shopper's own rate-limit quota and click attribution. Format: 'sv1-' + the first 24 hex characters of SHA-256('swervie/v1|' + normalized identifier), or 'sv1r-' + a UUID. A raw email or phone number is hashed server-side before anything is stored. (≤128 chars) |
 
 ## `get_products`
 
@@ -93,35 +93,4 @@ Full detail for up to 25 products: all specifications in the category's standard
 | Argument | Type | Required | Notes |
 |---|---|---|---|
 | `ids` | array | yes | (1–25 items) |
-| `user_signature` | string | no | Optional opaque, stable, pseudonymous user id that personalizes ranking. Format: 'sv1-' + the first 24 hex characters of SHA-256('swervie/v1|' + normalized identifier), or 'sv1r-' + a UUID. A raw email or phone number is hashed server-side before anything is stored. (≤128 chars) |
-
-## `record_selection`
-
-**Record a product selection** · write, non-destructive
-
-Record which product the user considered or chose. Selections improve future ranking, especially for a returning user_signature. Each call appends one event per product id and changes nothing else.
-
-| Argument | Type | Required | Notes |
-|---|---|---|---|
-| `user_signature` | string | no | (≤128 chars) |
-| `product_id` | string | no |  |
-| `product_ids` | array | no | (–25 items) |
-| `action` | string | no | (≤32 chars; default `considered`) |
-| `category` | string | no |  |
-
-## `submit_feedback`
-
-**Send feedback on results** · write, non-destructive
-
-Report a problem or observation about Swervie results for human review: wrong or missing specs, a stale price, a bad category match, duplicate listings that were not merged, a product the catalog lacks, or a ranking that looks off. Plain text, at most 2000 characters. Longer submissions are rejected with an error, not truncated. Each call holds one issue, optionally tied to product_ids or a category.
-
-| Argument | Type | Required | Notes |
-|---|---|---|---|
-| `feedback` | string | yes | (≤2000 chars) |
-| `kind` | string | no | One of: incorrect_data, stale_price, wrong_match, missing_product, duplicate, ranking, other. Free text is tolerated and normalized. (≤64 chars) |
-| `tool` | string | no | Which Swervie tool produced the result the feedback is about. (≤64 chars) |
-| `category` | string | no | For wrong_match: the shelf that did NOT fit the shopper's words. (≤200 chars) |
-| `product_ids` | array | no | (–25 items) |
-| `query` | string | no | The shopper's original words. For wrong_match and missing_product it routes the demand to the right queue. (≤200 chars) |
-| `user_signature` | string | no | Optional opaque, stable, pseudonymous user id that personalizes ranking. Format: 'sv1-' + the first 24 hex characters of SHA-256('swervie/v1|' + normalized identifier), or 'sv1r-' + a UUID. A raw email or phone number is hashed server-side before anything is stored. (≤128 chars) |
-
+| `user_signature` | string | no | Optional opaque, stable, pseudonymous user id: the shopper's own rate-limit quota and click attribution. Format: 'sv1-' + the first 24 hex characters of SHA-256('swervie/v1|' + normalized identifier), or 'sv1r-' + a UUID. A raw email or phone number is hashed server-side before anything is stored. (≤128 chars) |

@@ -19,7 +19,7 @@ MCP_URL = os.environ.get(
 
 
 def user_signature(identifier: str) -> str:
-    """Pseudonymous, stable id for personalization. Never send the raw id."""
+    """Pseudonymous id: own rate-limit quota + click attribution. Never the raw id."""
     normalized = identifier.strip().lower()
     digest = hashlib.sha256(f"swervie/v1|{normalized}".encode()).hexdigest()
     return "sv1-" + digest[:24]
