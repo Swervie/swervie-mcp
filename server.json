@@ -8,7 +8,7 @@
     "url": "https://github.com/Swervie/swervie-mcp",
     "source": "github"
   },
-  "version": "1.5.2",
+  "version": "1.6.0",
   "remotes": [
     {
       "type": "streamable-http",

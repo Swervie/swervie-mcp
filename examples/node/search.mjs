@@ -10,7 +10,8 @@ const MCP_URL = process.env.MCP_URL ??
   "https://us-central1-swervie-prod.cloudfunctions.net/mcp";
 const query = process.argv.slice(2).join(" ") || "robot vacuum for pet hair under $600";
 
-// Optional, pseudonymous personalization. Never send the raw identifier.
+// Optional pseudonymous id: the shopper's own rate-limit quota and click
+// attribution. Never send the raw identifier.
 const userSignature = (id) =>
   "sv1-" + createHash("sha256").update("swervie/v1|" + id.trim().toLowerCase())
     .digest("hex").slice(0, 24);

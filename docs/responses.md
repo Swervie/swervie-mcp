@@ -96,9 +96,7 @@ Reading it:
 - A `group` row is several retailer listings of the same product collapsed
   into one; `top_pick_id` is the member the row is named after, and passing a
   group id to `get_products` resolves to it.
-- `card_specs` is the spec order every product card shows; the server
-  instructions ask agents to list specs in that order when describing or
-  comparing products.
+- `card_specs` is the spec order every product card shows.
 - Rows carry `preference_boost` when the query (or `browse_category`
   `preferences`) included soft wishes such as "quiet" or "for pet hair".
 
@@ -128,7 +126,8 @@ specs in one shared order (`mode: "comparison"`).
 `ambiguous` (candidates in `rows`), or `none` (recorded as demand). On `exact`
 or `likely`, `products[0]` is the full detail and `shelf_context` gives rank,
 variants (colorways, sizes) and alternatives. A product with no live price is
-flagged under `readiness`; never quote its price as current.
+flagged under `readiness` and carries no offer prices at all; specs and
+identity are still reliable.
 
 ## `find_category`
 
@@ -174,8 +173,8 @@ specs first), `attribute_provenance` recording where each value came from
 verbatim evidence quotes, `offers` with every seller's price and `buy_url`,
 and `resolved_groups` when a group id was substituted by its top pick.
 
-## Writes
+## Notes
 
-`record_selection` returns `{"recorded": true, "count": 1}`.
-`submit_feedback` returns `{"recorded": true, "id": "…", "kind": "wrong_match"}`.
-Feedback over 2,000 characters is rejected with an error, never truncated.
+Every sentence of prose inside a result (`note` fields) states a fact about
+the result: what matched, what was recorded as demand, what a field means.
+Results never contain instructions to the model.

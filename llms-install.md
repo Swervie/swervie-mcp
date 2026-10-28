@@ -26,8 +26,8 @@ or run locally, and no API key or account is needed.
    ```
 
 4. Verify: list tools. You should see `search_products`, `lookup_product`,
-   `find_category`, `browse_category`, `get_products`, `record_selection`,
-   and `submit_feedback`. Call `search_products` with
+   `find_category`, `browse_category`, and `get_products`, all read-only.
+   Call `search_products` with
    `{"query": "robot vacuum for pet hair under $600", "limit": 3}` and expect
    a JSON shelf with `rows`, `interpretation`, and `disclosure`.
 
